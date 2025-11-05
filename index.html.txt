@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QWERTY TMA: Коллекционер Наборов</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <style id="page-styles">
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #f4f4f5);
+            color: var(--tg-theme-text-color, #000000);
+            margin: 0;
+            padding: 0;
+            padding-bottom: 60px;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --tg-accent: var(--tg-theme-button-color, #5288c1);
+            --tg-accent-text: var(--tg-theme-button-text-color, #ffffff);
+            --tg-card-bg: var(--tg-theme-secondary-bg-color, #ffffff);
+        }
+
+        /* --- HEADER --- */
+        #app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: var(--tg-card-bg);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .balance-display {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--tg-accent);
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            color: var(--tg-theme-hint-color, #888888);
+            font-size: 1em;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+        /* --- MAIN CONTAINER & PAGES --- */
+        #app-container {
+            padding: 15px;
+        }
+
+        .app-page {
+            display: none;
+            min-height: calc(100vh - 120px);
+        }
+
+        .app-page.active {
+            display: block;
+        }
+
+        .page-title {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--tg-theme-text-color);
+        }
+
+        /* --- PACKS GRID --- */
+        .packs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .pack-card {
+            background-color: var(--tg-card-bg);
+            border-radius: 12px;
+            padding: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .pack-card.limited {
+            border: 2px solid #ffcc00;
+        }
+
+        .pack-card:active {
+            transform: scale(0.98);
+        }
+
+        .pack-image {
+            width: 80%;
+            max-height: 120px;
+            object-fit: contain;
+            margin-bottom: 5px;
+        }
+
+        .pack-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin: 5px 0;
+        }
+
+        .pack-chance {
+            font-size: 0.85em;
+            color: var(--tg-theme-hint-color);
+            margin: 3px 0;
+        }
+
+        .pack-stock {
+            font-size: 0.9em;
+            color: #e74c3c;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .open-btn, .view-btn, .buy-btn {
+            width: 100%;
+            padding: 8px 0;
+            margin-top: 5px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--tg-accent);
+            color: var(--tg-accent-text);
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        .open-btn:active, .buy-btn:active {
+            background-color: #4075b0;
+        }
+
+        .large-btn {
+            padding: 12px 0;
+            font-size: 1.1em;
+        }
+
+        /* --- PACK DETAIL PAGE --- */
+        .large-pack-image {
+            width: 60%;
+            display: block;
+            margin: 0 auto 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        #detail-rewards-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        #detail-rewards-list li {
+            background-color: var(--tg-theme-secondary-bg-color, #ebebeb);
+            padding: 8px 15px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            font-size: 0.95em;
+        }
+
+        /* --- COLLECTION PAGE --- */
+        .inventory-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .inventory-item {
+            width: calc(50% - 5px);
+            padding: 10px;
+            background-color: var(--tg-card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .inventory-item.placeholder {
+            width: 100%;
+            color: var(--tg-theme-hint-color);
+            padding: 30px;
+        }
+
+        .item-name {
+            font-weight: 600;
+        }
+
+        .item-count {
+            color: var(--tg-theme-hint-color);
+            font-size: 0.85em;
+        }
+
+        /* --- BUY STARS PAGE --- */
+        .purchase-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .purchase-card {
+            background-color: var(--tg-card-bg);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .purchase-card h3 {
+            margin-top: 0;
+            color: var(--tg-accent);
+        }
+
+        .info-text {
+            color: var(--tg-theme-hint-color);
+            margin-bottom: 20px;
+        }
+
+        /* --- NAV MENU --- */
+        #app-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 55px;
+            background-color: var(--tg-card-bg);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.03);
+            z-index: 20;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+            background: none;
+            border: none;
+            color: var(--tg-theme-hint-color);
+            font-size: 0.7em;
+            padding: 5px 0;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--tg-accent);
+        }
+
+        .nav-item .icon {
+            font-size: 1.5em;
+            margin-bottom: 2px;
+        }
+
+        /* --- OVERLAY/MODAL (Результат Открытия) --- */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 30;
+            backdrop-filter: blur(5px);
+        }
+
+        .result-box {
+            background-color: var(--tg-card-bg);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            width: 80%;
+            max-width: 350px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .result-image {
+            width: 100px;
+            height: 100px;
+            margin: 15px 0;
+            border-radius: 10px;
+            background-color: #f0f0f0;
+            object-fit: cover;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Адаптация для темной темы Telegram, если доступно */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --tg-theme-bg-color: #24292e;
+                --tg-theme-secondary-bg-color: #1a1f23;
+                --tg-theme-text-color: #ffffff;
+                --tg-theme-hint-color: #aaaaaa;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header id="app-header">
+        <button id="back-button" class="header-btn hidden">← Назад</button>
+        <div class="balance-display">
+            <span id="user-balance">0</span> ⭐
+        </div>
+        <button id="close-button" class="header-btn">Закрыть</button>
+    </header>
+
+    <main id="app-container">
+
+        <section id="page-open" class="app-page active">
+            <h2 class="page-title">Открывай Наборы</h2>
+            <div id="packs-grid" class="packs-grid">
+                <div class="pack-card" data-pack-id="basic">
+                    <img src="https://i.imgur.com/example_basic_pack.png" alt="Базовый Набор" class="pack-image">
+                    <h3 class="pack-name">Базовый Набор</h3>
+                    <p class="pack-chance">Шанс: 5% на редкое</p>
+                    <p class="pack-stock">Осталось: <span id="stock-basic">∞</span></p>
+                    <button class="open-btn" data-cost="50">Открыть за 50 ⭐</button>
+                </div>
+                <div class="pack-card limited" data-pack-id="superhero">
+                    <img src="https://i.imgur.com/example_superhero_pack.png" alt="Набор Супергероев" class="pack-image">
+                    <h3 class="pack-name">Набор Супергероев</h3>
+                    <p class="pack-chance">Шанс: 1% на **NFT**</p>
+                    <p class="pack-stock">Осталось: <span id="stock-superhero">100</span></p>
+                    <button class="open-btn" data-cost="200">Открыть за 200 ⭐</button>
+                    <button class="view-btn">Подробнее</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-pack-detail" class="app-page">
+            <h2 class="page-title">Набор <span id="detail-pack-name"></span></h2>
+            <div id="detail-content" class="detail-content">
+                <img id="detail-pack-image" src="" alt="" class="large-pack-image">
+                <p id="detail-description">Детальное описание набора. Здесь можно найти **уникальные NFT-карты** и **Telegram Gifts**.</p>
+                <ul id="detail-rewards-list">
+                    <li>50-100 ⭐ (часто)</li>
+                    <li>Уникальная Карта (средне)</li>
+                    <li>**NFT-Предмет** (редко)</li>
+                    <li>Telegram Gift (очень редко)</li>
+                </ul>
+                <p class="detail-stock-info">Осталось лимитированных наборов: <span id="detail-stock-count"></span></p>
+                <button id="detail-open-btn" class="open-btn large-btn" data-cost="0">Открыть за X ⭐</button>
+            </div>
+        </section>
+
+        <section id="page-collection" class="app-page">
+            <h2 class="page-title">Моя Коллекция</h2>
+            <div id="inventory-list" class="inventory-list">
+                <div class="inventory-item placeholder">
+                    <p>Предметы появятся здесь после открытия наборов.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-buy-stars" class="app-page">
+            <h2 class="page-title">Получай ⭐ Звезды</h2>
+            <p class="info-text">Выберите пакет Звезд для пополнения баланса:</p>
+            <div class="purchase-options">
+                <div class="purchase-card">
+                    <h3>Пакет "Новичок"</h3>
+                    <p>+100 ⭐</p>
+                    <button class="buy-btn" data-amount="100">Купить (Заглушка)</button>
+                </div>
+                <div class="purchase-card">
+                    <h3>Пакет "Герой"</h3>
+                    <p>+550 ⭐ (бонус +50)</p>
+                    <button class="buy-btn" data-amount="550">Купить (Заглушка)</button>
+                </div>
+            </div>
+        </section>
+
+        <div id="result-overlay" class="overlay hidden">
+            <div class="result-box">
+                <h3 id="result-title">Поздравляем!</h3>
+                <p id="result-message">Вы получили...</p>
+                <img id="result-item-image" src="" alt="Полученный предмет" class="result-image">
+                <button id="result-close-btn" class="large-btn">Продолжить</button>
+            </div>
+        </div>
+
+    </main>
+
+    <nav id="app-nav">
+        <button class="nav-item active" data-target="page-open">
+            <span class="icon">🎁</span>
+            <span class="label">Открывай</span>
+        </button>
+        <button class="nav-item" data-target="page-collection">
+            <span class="icon">📦</span>
+            <span class="label">Коллекция</span>
+        </button>
+        <button class="nav-item" data-target="page-buy-stars">
+            <span class="icon">💰</span>
+            <span class="label">Получай Звезды</span>
+        </button>
+    </nav>
+
+    <script id="app-scripts">
+        // --- 1. ИНИЦИАЛИЗАЦИЯ TELEGRAM MINI APP ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Telegram && window.Telegram.WebApp) {
+                Telegram.WebApp.ready();
+                Telegram.WebApp.expand();
+                // Используем цветовую схему Telegram
+                document.body.style.backgroundColor = Telegram.WebApp.themeParams.bg_color;
+                
+                // Получение User ID (для имитации запросов к бэкенду)
+                const userId = Telegram.WebApp.initDataUnsafe.user ? Telegram.WebApp.initDataUnsafe.user.id : 'MOCK_USER_ID_12345';
+                console.log("TMA Initialized. User ID:", userId);
+
+                // Обработчик кнопки "Закрыть"
+                document.getElementById('close-button').addEventListener('click', () => {
+                    Telegram.WebApp.close();
+                });
+
+                // Обработчик аппаратной кнопки "Назад" в Telegram
+                Telegram.WebApp.onEvent('backButtonClicked', handleBackButton);
+            } else {
+                console.warn("Telegram WebApp API not found. Running in MOCK mode.");
+                // Имитация стандартного поведения в браузере
+                const closeBtn = document.getElementById('close-button');
+                if (closeBtn) closeBtn.textContent = 'X Закрыть (MOCK)';
+            }
+
+            // Запуск инициализации приложения
+            initApp(userId);
+        });
+
+        let currentView = 'page-open';
+
+        function handleBackButton() {
+            if (currentView === 'page-pack-detail') {
+                showPage('page-open');
+            } else if (currentView !== 'page-open') {
+                // Вернуться на главную, если мы на другой основной вкладке
+                showPage('page-open');
+                updateNav('page-open');
+            } else {
+                // На главной странице "Открывай" - закрываем TMA
+                if (window.Telegram && window.Telegram.WebApp) {
+                    Telegram.WebApp.close();
+                }
+            }
+        }
+
+        // --- 2. УПРАВЛЕНИЕ СТРАНИЦАМИ И НАВИГАЦИЕЙ ---
+
+        const pages = document.querySelectorAll('.app-page');
+        const navItems = document.querySelectorAll('.nav-item');
+        const backButton = document.getElementById('back-button');
+
+        function showPage(pageId, isDetail = false) {
+            currentView = pageId;
+            pages.forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+
+            // Управление кнопкой "Назад"
+            if (isDetail || pageId === 'page-pack-detail') {
+                backButton.classList.remove('hidden');
+                if (window.Telegram && window.Telegram.WebApp) {
+                     Telegram.WebApp.BackButton.show(); // Показываем нативную кнопку
+                }
+            } else {
+                backButton.classList.add('hidden');
+                if (window.Telegram && window.Telegram.WebApp) {
+                     Telegram.WebApp.BackButton.hide(); // Скрываем нативную кнопку
+                }
+            }
+            
+            // Скролл вверх при смене страницы
+            document.getElementById('app-container').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateNav(targetId) {
+            navItems.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-target') === targetId) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // Обработчики нижнего меню
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const targetId = item.getAttribute('data-target');
+                showPage(targetId);
+                updateNav(targetId);
+            });
+        });
+
+        // Обработчик кнопки "Назад" в хедере
+        backButton.addEventListener('click', handleBackButton);
+
+
+        // --- 3. ИМИТАЦИЯ BACKEND API ---
+
+        let MOCK_BALANCE = 500;
+        let MOCK_INVENTORY = [
+            { id: 1, name: 'Обычная Карта #1', type: 'Common', count: 3, image: 'https://i.imgur.com/common_card.png' },
+            { id: 2, name: 'Редкий Артефакт', type: 'Rare', count: 1, image: 'https://i.imgur.com/rare_artifact.png' }
+        ];
+
+        const PACK_DATA = {
+            basic: {
+                name: 'Базовый Набор', cost: 50, stock: Infinity,
+                rewards: [
+                    { name: 'Обычная Карта #1', chance: 70, type: 'Common', image: 'https://i.imgur.com/common_card.png' },
+                    { name: 'Доп. Звезды (+50)', chance: 20, type: 'Stars', amount: 50, image: 'https://i.imgur.com/star_bonus.png' },
+                    { name: 'Редкий Артефакт', chance: 9, type: 'Rare', image: 'https://i.imgur.com/rare_artifact.png' },
+                    { name: 'Уникальный NFT (Тест)', chance: 1, type: 'NFT', image: 'https://i.imgur.com/nft_item.png' }
+                ]
+            },
+            superhero: {
+                name: 'Набор Супергероев', cost: 200, stock: 98,
+                rewards: [
+                    { name: 'Суперсила (Часто)', chance: 60, type: 'Common', image: 'https://i.imgur.com/super_power.png' },
+                    { name: 'Доп. Звезды (+200)', chance: 25, type: 'Stars', amount: 200, image: 'https://i.imgur.com/star_bonus_large.png' },
+                    { name: 'Легендарный NFT-Герой', chance: 10, type: 'NFT', image: 'https://i.imgur.com/legendary_nft.png' },
+                    { name: 'Telegram Gift (Премиум)', chance: 5, type: 'Gift', image: 'https://i.imgur.com/tg_gift.png' }
+                ]
+            }
+        };
+
+        async function fetchUserData(userId) {
+            console.log(`[BACKEND MOCK] Fetching data for ${userId}`);
+            return {
+                balance: MOCK_BALANCE,
+                inventory: MOCK_INVENTORY
+            };
+        }
+
+        async function fetchPacksStock() {
+            return {
+                'stock-superhero': PACK_DATA.superhero.stock,
+                'stock-basic': PACK_DATA.basic.stock
+            };
+        }
+
+        async function openPackAPI(userId, packId) {
+            const pack = PACK_DATA[packId];
+            if (!pack) {
+                return { success: false, message: 'Набор не найден.' };
+            }
+            if (MOCK_BALANCE < pack.cost) {
+                return { success: false, message: 'Недостаточно Звезд!' };
+            }
+            if (pack.stock !== Infinity && pack.stock <= 0) {
+                return { success: false, message: 'Набор закончился!' };
+            }
+
+            // 1. Списание стоимости
+            MOCK_BALANCE -= pack.cost;
+
+            // 2. Определение полученного предмета (простая логика шансов)
+            const randomValue = Math.random() * 100;
+            let cumulativeChance = 0;
+            let receivedItem = null;
+
+            for (const reward of pack.rewards) {
+                cumulativeChance += reward.chance;
+                if (randomValue <= cumulativeChance) {
+                    receivedItem = reward;
+                    break;
+                }
+            }
+
+            // 3. Обработка получения
+            if (receivedItem.type === 'Stars') {
+                MOCK_BALANCE += receivedItem.amount;
+            } else {
+                // Добавление в инвентарь (или увеличение счетчика)
+                const existing = MOCK_INVENTORY.find(item => item.name === receivedItem.name);
+                if (existing) {
+                    existing.count += 1;
+                } else {
+                    MOCK_INVENTORY.push({ ...receivedItem, id: Date.now(), count: 1 });
+                }
+            }
+
+            // 4. Уведомление Администратора (Ключевое условие)
+            if (receivedItem.type === 'NFT' || receivedItem.type === 'Gift') {
+                console.warn(`[ADMIN NOTIFICATION] Пользователь ${userId} получил РЕДКИЙ ПРИЗ: ${receivedItem.name}. Требуется ручная выдача.`);
+                if (window.Telegram && window.Telegram.WebApp) {
+                    Telegram.WebApp.showAlert(`Внимание! Вы получили редкий приз (${receivedItem.name})! Свяжитесь с администратором для выдачи.`);
+                }
+            }
+
+            // 5. Уменьшение лимита (если лимитированный)
+            if (pack.stock !== Infinity) {
+                pack.stock -= 1;
+            }
+
+            return { success: true, item: receivedItem };
+        }
+
+        // --- 4. ОБРАБОТКА UI ---
+
+        function renderBalance() {
+            document.getElementById('user-balance').textContent = MOCK_BALANCE.toLocaleString();
+        }
+
+        function renderInventory() {
+            const list = document.getElementById('inventory-list');
+            list.innerHTML = '';
+            if (MOCK_INVENTORY.length === 0) {
+                list.innerHTML = `<div class="inventory-item placeholder"><p>Ваша коллекция пуста.</p><p>Откройте наборы, чтобы ее пополнить!</p></div>`;
+                return;
+            }
+
+            MOCK_INVENTORY.forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'inventory-item';
+                itemDiv.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}" class="pack-image" style="width:50px;">
+                    <p class="item-name">${item.name}</p>
+                    <p class="item-count">x${item.count}</p>
+                    ${item.type === 'NFT' ? '<span style="color:#3498db;font-weight:bold;">💎 NFT</span>' : ''}
+                `;
+                list.appendChild(itemDiv);
+            });
+        }
+
+        function renderStocks(stocks) {
+            document.getElementById('stock-superhero').textContent = stocks['stock-superhero'] === Infinity ? '∞' : stocks['stock-superhero'];
+            document.getElementById('stock-basic').textContent = stocks['stock-basic'] === Infinity ? '∞' : '∞';
+        }
+
+        function initApp(userId) {
+            // Первоначальная загрузка данных
+            fetchUserData(userId).then(data => {
+                MOCK_BALANCE = data.balance;
+                MOCK_INVENTORY = data.inventory;
+                renderBalance();
+                renderInventory();
+            });
+
+            fetchPacksStock().then(stocks => {
+                renderStocks(stocks);
+            });
+
+            // Назначаем обработчики на все кнопки "Открыть"
+            document.querySelectorAll('.open-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const cost = parseInt(e.target.dataset.cost);
+                    const packId = e.target.closest('.pack-card') ? e.target.closest('.pack-card').dataset.packId : document.getElementById('detail-open-btn').dataset.packId;
+                    
+                    const confirmMessage = `Вы уверены, что хотите открыть ${PACK_DATA[packId].name} за ${cost} ⭐?`;
+                    
+                    const openAction = async () => {
+                        const result = await openPackAPI(userId, packId);
+                        handleOpenResult(result);
+                    };
+
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        Telegram.WebApp.showConfirm(confirmMessage, (isConfirmed) => {
+                            if (isConfirmed) openAction();
+                        });
+                    } else {
+                        if (confirm(confirmMessage)) openAction();
+                    }
+                });
+            });
+
+            // Обработчики для перехода на страницу деталей набора
+            document.querySelectorAll('.view-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const packId = e.target.closest('.pack-card').dataset.packId;
+                    const pack = PACK_DATA[packId];
+
+                    document.getElementById('detail-pack-name').textContent = pack.name;
+                    document.getElementById('detail-pack-image').src = e.target.closest('.pack-card').querySelector('.pack-image').src;
+                    document.getElementById('detail-stock-count').textContent = pack.stock === Infinity ? 'Безлимит' : pack.stock;
+                    
+                    const detailOpenBtn = document.getElementById('detail-open-btn');
+                    detailOpenBtn.textContent = `Открыть за ${pack.cost} ⭐`;
+                    detailOpenBtn.dataset.cost = pack.cost;
+                    detailOpenBtn.dataset.packId = packId; // Привязываем ID к кнопке на странице деталей
+
+                    showPage('page-pack-detail', true);
+                });
+            });
+            
+            // Обработчики для кнопок покупки "Звезд" (заглушка)
+            document.querySelectorAll('.buy-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const amount = parseInt(e.target.dataset.amount);
+                    
+                    MOCK_BALANCE += amount;
+                    renderBalance();
+                    
+                    const message = `Покупка ${amount} ⭐ успешно имитирована!`;
+                    if (window.Telegram && window.Telegram.WebApp) {
+                        Telegram.WebApp.showPopup({
+                            title: 'Покупка (Заглушка)',
+                            message: message,
+                            buttons: [{ id: 'ok', type: 'ok', text: 'Отлично' }]
+                        });
+                    } else {
+                        alert(`[ЗАГЛУШКА ПЛАТЕЖА] ${message}`);
+                    }
+                });
+            });
+            
+            // Обработчик закрытия модального окна результата
+            document.getElementById('result-close-btn').addEventListener('click', () => {
+                document.getElementById('result-overlay').classList.add('hidden');
+                showPage('page-open'); // Возвращаемся на витрину
+                updateNav('page-open');
+            });
+
+            // Первоначальный показ главной страницы
+            showPage('page-open');
+        }
+
+        // --- 5. ОБРАБОТКА РЕЗУЛЬТАТА ОТКРЫТИЯ ---
+        function handleOpenResult(result) {
+            const overlay = document.getElementById('result-overlay');
+            const title = document.getElementById('result-title');
+            const message = document.getElementById('result-message');
+            const image = document.getElementById('result-item-image');
+            
+            renderBalance(); // Обновляем баланс
+            
+            if (result.success) {
+                const item = result.item;
+                if (item.type === 'Stars') {
+                    title.textContent = 'Бонус Звезд!';
+                    message.textContent = `Вы нашли дополнительно ${item.amount} ⭐!`;
+                    image.src = item.image;
+                } else {
+                    title.textContent = item.type === 'NFT' || item.type === 'Gift' ? '🎉 РЕДКИЙ ПРИЗ!' : 'Получен Новый Предмет!';
+                    message.textContent = `Вы получили: **${item.name}**! Он добавлен в вашу коллекцию.`;
+                    image.src = item.image;
+                    renderInventory(); // Обновляем инвентарь
+                }
+                
+                overlay.classList.remove('hidden');
+            } else {
+                if (window.Telegram && window.Telegram.WebApp) {
+                    Telegram.WebApp.showAlert(result.message);
+                } else {
+                    alert(result.message);
+                }
+            }
+            
+            fetchPacksStock().then(stocks => {
+                renderStocks(stocks);
+            });
+        }
+    </script>
+</body>
+</html>
