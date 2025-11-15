@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>QWERTY Casino</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #000000;
+      --card: #1a1a1a;
+      --accent: #ffd700;
+      --text: #ffffff;
+      --green: #00ff00;
+      --red: #ff4444;
+      --blue: #3399ff;
+      --purple: #9966cc;
+    }
+
+    * { 
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box; 
+    }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow-x: hidden;
+      padding-bottom: 80px;
+      user-select: none;
+    }
+
+    .container { padding: 16px; }
+
+    /* Status Bar */
+    .status-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 16px;
+      font-size: 14px;
+      background: var(--bg);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding: 0 10px;
+    }
+    .back-btn, .close-btn {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .page-title {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* Main Balance */
+    .main-balance {
+      text-align: center;
+      font-size: 32px;
+      font-weight: bold;
+      margin: 20px 0;
+    }
+    .balance-small {
+      font-size: 16px;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    /* Live Section */
+    .live-section {
+      background: linear-gradient(135deg, #ff4444, #ff6b6b);
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .live-title {
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .live-numbers {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 15px 0;
+    }
+    .live-number {
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .live-stats {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    .live-stat {
+      text-align: center;
+    }
+    .stat-value {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .stat-label {
+      font-size: 12px;
+      color: #ccc;
+    }
+
+    /* Main Menu Grid */
+    .main-menu {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .menu-item {
+      background: var(--card);
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      border: 1px solid #333;
+    }
+    .menu-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .menu-subtitle {
+      color: #666;
+      font-size: 14px;
+    }
+    .new-badge {
+      background: var(--green);
+      color: #000;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 10px;
+      margin-left: 5px;
+    }
+
+    /* Free Section */
+    .free-section {
+      background: var(--card);
+      border-radius: 15px;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .free-title {
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .free-items {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    .free-item {
+      background: #2a2a2a;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+    .free-item-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    .free-item-value {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    /* Action Buttons */
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .action-btn {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 15px;
+      color: var(--text);
+      text-align: center;
+    }
+    .spin-btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      padding: 18px;
+      font-weight: bold;
+      width: 100%;
+      margin: 20px 0;
+    }
+
+    /* Timer */
+    .timer {
+      text-align: center;
+      color: #666;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+
+    /* Gifts Section */
+    .gifts-info {
+      background: var(--card);
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .gifts-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .add-gift-btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      padding: 15px;
+      font-weight: bold;
+      width: 100%;
+      margin: 20px 0;
+    }
+    .available-gifts {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-top: 15px;
+    }
+    .gift-item {
+      background: #2a2a2a;
+      border-radius: 12px;
+      padding: 15px;
+      text-align: center;
+    }
+    .gift-name {
+      margin-bottom: 5px;
+    }
+    .gift-value {
+      color: var(--accent);
+      font-weight: bold;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0;
+      border-top: 1px solid #333;
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #666;
+      font-size: 12px;
+      position: relative;
+    }
+    .nav-item.active {
+      color: var(--accent);
+    }
+    .nav-badge {
+      background: var(--red);
+      color: white;
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 8px;
+      position: absolute;
+      top: -5px;
+      right: -5px;
+    }
+
+    /* Sections */
+    .section {
+      display: none;
+    }
+    .section.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Checkbox */
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #666;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .checkbox.checked {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .checkbox.checked::after {
+      content: '✓';
+      color: #000;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div>21:57</div>
+    <div>LTE 96</div>
+  </div>
+
+  <!-- Main Home Section -->
+  <div id="main" class="section active">
+    <div class="container">
+      <div class="header">
+        <button class="back-btn" onclick="openSection('main')">←</button>
+        <div class="page-title">21:57</div>
+        <button class="close-btn" onclick="openSection('main')">×</button>
+      </div>
+
+      <div class="main-balance">
+        <div>45</div>
+        <div class="balance-small">6</div>
+      </div>
+
+      <div class="live-section">
+        <div class="live-title">LIVE</div>
+        <div class="live-numbers">
+          <div class="live-number">238</div>
+          <div class="live-number">22 334</div>
+        </div>
+        <div class="action-buttons">
+          <div class="checkbox-item">
+            <div class="checkbox"></div>
+            <div>Настройки</div>
+          </div>
+          <div class="checkbox-item">
+            <div class="checkbox checked"></div>
+            <div>Призы</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="timer">Через 21:10:33</div>
+    </div>
+  </div>
+
+  <!-- Free Section -->
+  <div id="free" class="section">
+    <div class="container">
+      <div class="header">
+        <button class="back-btn" onclick="openSection('main')">←</button>
+        <div class="page-title">Бесплатно</div>
+        <div style="width: 40px;"></div>
+      </div>
+
+      <div class="free-section">
+        <div class="free-title">Участвуйте в бесплатных розыгрышах!</div>
+        <div class="free-items">
+          <div class="free-item">
+            <div class="free-item-title">Daily</div>
+            <div class="free-item-value">0</div>
+          </div>
+          <div class="free-item">
+            <div class="free-item-title">Tic...</div>
+            <div class="free-item-value">10</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Menu Section -->
+  <div id="menu" class="section">
+    <div class="container">
+      <div class="header">
+        <button class="back-btn" onclick="openSection('main')">←</button>
+        <div class="page-title">21:57</div>
+        <button class="close-btn" onclick="openSection('main')">×</button>
+      </div>
+
+      <div class="main-balance">
+        <div>45</div>
+        <div class="balance-small">6</div>
+      </div>
+
+      <div class="live-section">
+        <div class="live-title">LIVE</div>
+        <div class="main-menu">
+          <div class="menu-item" onclick="openSection('free')">
+            <div class="menu-title">Бесплатно</div>
+            <div class="menu-subtitle">2 кейсов</div>
+          </div>
+          <div class="menu-item" onclick="openSection('roulette')">
+            <div class="menu-title">Рулетка</div>
+            <div class="menu-subtitle">12 кейсов</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-title">Слоты <span class="new-badge">Новое</span></div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-title">Промокод</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-title">Пополнить</div>
+          </div>
+          <div class="menu-item">
+            <div class="menu-title">Вывод</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin: 20px 0;">
+        <span class="new-badge">new</span>
+        <span style="margin-left: 5px;">5</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Wheel Section -->
+  <div id="live-wheel" class="section">
+    <div class="container">
+      <div class="header">
+        <button class="back-btn" onclick="openSection('menu')">←</button>
+        <div class="page-title">LIVE</div>
+        <div style="width: 40px;"></div>
+      </div>
+
+      <div class="live-section">
+        <div class="live-numbers">
+          <div class="live-number">49</div>
+          <div class="live-number">129</div>
+          <div class="live-number">299</div>
+        </div>
+        
+        <div class="action-buttons">
+          <button class="action-btn">Настройки</button>
+          <button class="action-btn">Призы</button>
+        </div>
+
+        <button class="spin-btn">Крутить за 299</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gifts Section -->
+  <div id="gifts" class="section">
+    <div class="container">
+      <div class="header">
+        <button class="back-btn" onclick="openSection('main')">←</button>
+        <div class="page-title">Подарки</div>
+        <div style="width: 40px;"></div>
+      </div>
+
+      <div class="gifts-info">
+        <div class="gifts-title">Внесите подарок</div>
+        <p style="color: #666; margin: 10px 0; font-size: 14px;">
+          Затем продайте его за звезды на баланс или используйте для апгрейда
+        </p>
+      </div>
+
+      <button class="add-gift-btn">Добавить</button>
+
+      <div>
+        <div style="font-weight: bold; margin-bottom: 15px;">Доступные подарки</div>
+        <div class="available-gifts">
+          <div class="gift-item">
+            <div class="gift-name">icecream</div>
+            <div class="gift-value">226</div>
+          </div>
+          <div class="gift-item">
+            <div class="gift-name">deskcalendar</div>
+            <div class="gift-value">234</div>
+          </div>
+          <div class="gift-item">
+            <div class="gift-name">bdaycandle</div>
+            <div class="gift-value">237</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Roulette Section -->
+  <div id="roulette" class="section">
+    <div class="container">
+      <div class="header">
+        <button class="back-btn" onclick="openSection('menu')">←</button>
+        <div class="page-title">Рулетка</div>
+        <div style="width: 40px;"></div>
+      </div>
+
+      <div class="live-section">
+        <div class="live-numbers">
+          <div class="live-number">49</div>
+          <div class="live-number">129</div>
+          <div class="live-number">299</div>
+        </div>
+        
+        <div class="action-buttons">
+          <button class="action-btn">Настройки</button>
+          <button class="action-btn">Призы</button>
+        </div>
+
+        <button class="spin-btn">Крутить за 299</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="openSection('menu')">
+      <div>🎁</div>
+      <div>Кейсы</div>
+    </div>
+    <div class="nav-item" onclick="openSection('contests')">
+      <div>🏆</div>
+      <div>Конкурсы</div>
+    </div>
+    <div class="nav-item" onclick="openSection('tasks')">
+      <div>📝</div>
+      <div>Задания</div>
+    </div>
+    <div class="nav-item" onclick="openSection('leaders')">
+      <div>👑</div>
+      <div>Лидеры</div>
+    </div>
+    <div class="nav-item" onclick="openSection('profile')">
+      <div>👤</div>
+      <div>Профиль</div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Telegram Web App
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+
+    // Navigation
+    function openSection(sectionId) {
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.getElementById(sectionId).classList.add('active');
+      
+      // Update nav active state
+      document.querySelectorAll('.nav-item').forEach(nav => {
+        nav.classList.remove('active');
+      });
+    }
+
+    // Checkbox functionality
+    document.querySelectorAll('.checkbox').forEach(checkbox => {
+      checkbox.addEventListener('click', function() {
+        this.classList.toggle('checked');
+      });
+    });
+
+    // Initialize
+    openSection('main');
+
+    // Add haptic feedback for buttons
+    document.querySelectorAll('button').forEach(button => {
+      button.addEventListener('click', function() {
+        tg.HapticFeedback.impactOccurred('light');
+      });
+    });
+
+    // Spin button animation
+    document.querySelectorAll('.spin-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        this.style.transform = 'scale(0.95)';
+        setTimeout(() => {
+          this.style.transform = 'scale(1)';
+        }, 150);
+      });
+    });
+  </script>
+</body>
+</html>
