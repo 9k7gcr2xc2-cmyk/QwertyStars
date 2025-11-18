@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Пригласи друзей и получай бонусы</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0.8;
+            }
+            25% {
+                transform: translateY(-20px) translateX(10px) rotate(90deg);
+                opacity: 0.6;
+            }
+            50% {
+                transform: translateY(-40px) translateX(-10px) rotate(180deg);
+                opacity: 0.4;
+            }
+            75% {
+                transform: translateY(-20px) translateX(10px) rotate(270deg);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(0) translateX(0) rotate(360deg);
+                opacity: 0.8;
+            }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .stat-item {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 15px;
+            width: 45%;
+            max-width: 200px;
+            margin: 10px 5px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .invite-btn {
+            display: block;
+            margin: 25px auto;
+            background: linear-gradient(45deg, #ff8a00, #e52e71);
+            color: white;
+            border: none;
+            padding: 16px 45px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 80%;
+            max-width: 300px;
+        }
+        
+        .invite-btn:hover, .invite-btn:active {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .gifts-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .gifts-title {
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+        }
+        
+        .gift-box {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 18px;
+            border-radius: 15px;
+            margin: 10px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .gift-box:hover, .gift-box:active {
+            transform: scale(1.05);
+        }
+        
+        .new-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .gift-amount {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        
+        .menu {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .menu-item {
+            text-align: center;
+            margin: 8px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            width: 30%;
+            min-width: 150px;
+            max-width: 180px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .menu-item:hover, .menu-item:active {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .menu-item i {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: #ffd700;
+        }
+        
+        .menu-item-text {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+        
+        .friend-avatars {
+            display: flex;
+            justify-content: center;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .friend-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            margin: 2px;
+            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .animation-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            padding: 20px;
+        }
+        
+        .animation-container.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .animation-content {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+            transform: scale(0.8);
+            transition: transform 0.5s ease;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .animation-container.active .animation-content {
+            transform: scale(1);
+        }
+        
+        .animation-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+        }
+        
+        .animation-text {
+            margin-bottom: 20px;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+        
+        .close-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover, .close-btn:active {
+            background: #ff2e43;
+            transform: scale(1.05);
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .stat-item {
+                width: 45%;
+                padding: 12px;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+            
+            .menu-item {
+                width: 45%;
+                min-width: 140px;
+                margin: 5px;
+            }
+            
+            .menu-item i {
+                font-size: 1.6rem;
+            }
+            
+            .menu-item-text {
+                font-size: 0.9rem;
+            }
+            
+            .friend-avatar {
+                width: 24px;
+                height: 24px;
+                font-size: 0.6rem;
+            }
+            
+            .animation-content {
+                padding: 20px;
+            }
+            
+            .animation-title {
+                font-size: 1.6rem;
+            }
+            
+            .animation-text {
+                font-size: 0.95rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            header {
+                padding: 15px 0;
+            }
+            
+            h1 {
+                font-size: 1.6rem;
+            }
+            
+            .subtitle {
+                font-size: 0.9rem;
+            }
+            
+            .stats {
+                margin: 20px 0;
+            }
+            
+            .stat-item {
+                width: 46%;
+                padding: 10px;
+            }
+            
+            .stat-number {
+                font-size: 1.8rem;
+            }
+            
+            .stat-label {
+                font-size: 0.9rem;
+            }
+            
+            .invite-btn {
+                padding: 14px 35px;
+                font-size: 1.1rem;
+                width: 85%;
+            }
+            
+            .gifts-title {
+                font-size: 1.4rem;
+            }
+            
+            .gift-box {
+                padding: 15px;
+            }
+            
+            .gift-amount {
+                font-size: 1.6rem;
+            }
+            
+            .menu {
+                margin-top: 30px;
+            }
+            
+            .menu-item {
+                width: 46%;
+                min-width: 130px;
+                padding: 12px;
+            }
+            
+            .menu-item i {
+                font-size: 1.5rem;
+            }
+            
+            .menu-item-text {
+                font-size: 0.85rem;
+            }
+            
+            .friend-avatar {
+                width: 22px;
+                height: 22px;
+                font-size: 0.55rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="particles-container" id="particles"></div>
+    
+    <div class="container">
+        <header>
+            <h1>Приглашай друзей</h1>
+            <p class="subtitle">и получай 10% от их пополнений!</p>
+            <p class="subtitle">А так же по 5 за каждого,</p>
+            <p class="subtitle">но не более 30 в день</p>
+        </header>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number">2</div>
+                <div class="stat-label">Приглашено</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number">0</div>
+                <div class="stat-label">Заработано</div>
+            </div>
+        </div>
+        
+        <button class="invite-btn" id="inviteBtn">Пригласить</button>
+        
+        <div class="gifts-section">
+            <h2 class="gifts-title">Ваши подарки</h2>
+            <div class="gift-box">
+                <div class="new-badge">new</div>
+                <div class="gift-amount">5</div>
+            </div>
+        </div>
+        
+        <div class="menu">
+            <div class="menu-item" data-animation="cases">
+                <i class="fas fa-briefcase"></i>
+                <div class="menu-item-text">Кейсы</div>
+                <div class="friend-avatars">
+                    <div class="friend-avatar">А</div>
+                    <div class="friend-avatar">Б</div>
+                    <div class="friend-avatar">В</div>
+                </div>
+            </div>
+            <div class="menu-item" data-animation="contests">
+                <i class="fas fa-trophy"></i>
+                <div class="menu-item-text">Конкурсы</div>
+                <div class="friend-avatars">
+                    <div class="friend-avatar">Г</div>
+                    <div class="friend-avatar">Д</div>
+                </div>
+            </div>
+            <div class="menu-item" data-animation="tasks">
+                <i class="fas fa-tasks"></i>
+                <div class="menu-item-text">Задания</div>
+                <div class="friend-avatars">
+                    <div class="friend-avatar">Е</div>
+                    <div class="friend-avatar">Ж</div>
+                    <div class="friend-avatar">З</div>
+                </div>
+            </div>
+            <div class="menu-item" data-animation="leaders">
+                <i class="fas fa-chart-line"></i>
+                <div class="menu-item-text">Лидеры</div>
+                <div class="friend-avatars">
+                    <div class="friend-avatar">И</div>
+                    <div class="friend-avatar">К</div>
+                </div>
+            </div>
+            <div class="menu-item" data-animation="profile">
+                <i class="fas fa-user"></i>
+                <div class="menu-item-text">Профиль</div>
+                <div class="friend-avatars">
+                    <div class="friend-avatar">Л</div>
+                    <div class="friend-avatar">М</div>
+                    <div class="friend-avatar">Н</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="animation-container" id="animationContainer">
+        <div class="animation-content">
+            <h2 class="animation-title" id="animationTitle">Заголовок анимации</h2>
+            <p class="animation-text" id="animationText">Текст анимации появится здесь</p>
+            <button class="close-btn" id="closeBtn">Закрыть</button>
+        </div>
+    </div>
+    
+    <script>
+        // Создание частиц
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = window.innerWidth < 768 ? 30 : 50;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            // Случайный размер и позиция
+            const size = Math.random() * 15 + 5;
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.top = `${Math.random() * 100}%`;
+            
+            // Случайная задержка анимации
+            particle.style.animationDelay = `${Math.random() * 15}s`;
+            
+            particlesContainer.appendChild(particle);
+        }
+        
+        // Анимация открытия
+        const menuItems = document.querySelectorAll('.menu-item');
+        const animationContainer = document.getElementById('animationContainer');
+        const animationTitle = document.getElementById('animationTitle');
+        const animationText = document.getElementById('animationText');
+        const closeBtn = document.getElementById('closeBtn');
+        const inviteBtn = document.getElementById('inviteBtn');
+        
+        const animationData = {
+            cases: {
+                title: "Кейсы",
+                text: "Здесь вы можете открывать кейсы с различными наградами. Ваши друзья уже открыли несколько кейсов и получили ценные призы!"
+            },
+            contests: {
+                title: "Конкурсы",
+                text: "Участвуйте в конкурсах вместе с друзьями и выигрывайте эксклюзивные призы. Соревнуйтесь и поднимайтесь в таблице лидеров!"
+            },
+            tasks: {
+                title: "Задания",
+                text: "Выполняйте ежедневные задания и получайте награды. Приглашайте друзей для выполнения совместных заданий и увеличивайте свои бонусы!"
+            },
+            leaders: {
+                title: "Таблица лидеров",
+                text: "Смотрите, кто из ваших друзей на вершине рейтинга. Соревнуйтесь за первое место и получайте специальные награды!"
+            },
+            profile: {
+                title: "Ваш профиль",
+                text: "Здесь вы можете увидеть свою статистику, достижения и настройки. Покажите друзьям свои успехи!"
+            },
+            invite: {
+                title: "Пригласить друзей",
+                text: "Поделитесь ссылкой с друзьями и получайте 10% от их пополнений! За каждого приглашенного друга вы также получите 5 бонусов (но не более 30 в день)."
+            }
+        };
+        
+        function showAnimation(type) {
+            animationTitle.textContent = animationData[type].title;
+            animationText.textContent = animationData[type].text;
+            animationContainer.classList.add('active');
+            
+            // Предотвращаем скроллинг страницы при открытой анимации
+            document.body.style.overflow = 'hidden';
+        }
+        
+        function hideAnimation() {
+            animationContainer.classList.remove('active');
+            
+            // Возвращаем скроллинг страницы
+            document.body.style.overflow = 'auto';
+        }
+        
+        menuItems.forEach(item => {
+            item.addEventListener('click', () => {
+                showAnimation(item.dataset.animation);
+            });
+        });
+        
+        inviteBtn.addEventListener('click', () => {
+            showAnimation('invite');
+        });
+        
+        closeBtn.addEventListener('click', hideAnimation);
+        
+        // Закрытие анимации при клике вне контента
+        animationContainer.addEventListener('click', (e) => {
+            if (e.target === animationContainer) {
+                hideAnimation();
+            }
+        });
+        
+        // Закрытие анимации при нажатии клавиши Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                hideAnimation();
+            }
+        });
+    </script>
+</body>
+</html>
