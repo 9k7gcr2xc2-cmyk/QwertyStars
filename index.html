@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gorilla Case Bot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-bg: #0f0f1a;
+            --secondary-bg: #1a1a2e;
+            --accent: #7e57c2;
+            --accent-dark: #6a4aa8;
+            --text-primary: #ffffff;
+            --text-secondary: #b8b8c7;
+            --card-bg: #25253d;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --border-radius: 16px;
+            --border-radius-sm: 12px;
+        }
+
+        body {
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            max-width: 400px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--primary-bg);
+            position: relative;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: var(--secondary-bg);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .time {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .connection {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+        }
+
+        .connection i {
+            color: var(--success);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 16px;
+        }
+
+        .balance-section {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(126, 87, 194, 0.3);
+        }
+
+        .balance-title {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .balance-amount {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .balance-subtitle {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-sm);
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        /* Live Section */
+        .live-section {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .live-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .live-badge {
+            background: var(--danger);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .live-pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .live-items {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .live-item {
+            flex-shrink: 0;
+            width: 60px;
+            height: 60px;
+            background: var(--secondary-bg);
+            border-radius: var(--border-radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        /* Settings & Prizes */
+        .options-section {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .option-item {
+            flex: 1;
+            background: var(--card-bg);
+            border-radius: var(--border-radius-sm);
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .option-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .option-checkbox.checked {
+            background: var(--accent);
+        }
+
+        .option-checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-size: 12px;
+        }
+
+        .option-label {
+            font-size: 14px;
+        }
+
+        /* Spin Button */
+        .spin-section {
+            text-align: center;
+        }
+
+        .spin-button {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 16px 32px;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(126, 87, 194, 0.4);
+        }
+
+        .spin-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(126, 87, 194, 0.6);
+        }
+
+        .spin-cost {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-top: 8px;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--secondary-bg);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+        }
+
+        /* Case Opening Animation */
+        .case-opening {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .case-opening.active {
+            display: flex;
+        }
+
+        .case-reward {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            border-radius: var(--border-radius);
+            padding: 40px;
+            text-align: center;
+            animation: rewardPop 0.6s ease-out;
+        }
+
+        @keyframes rewardPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .reward-amount {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: white;
+        }
+
+        .reward-text {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        /* Wheel Animation */
+        .wheel-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .wheel-container.active {
+            display: flex;
+        }
+
+        .wheel-content {
+            width: 90%;
+            max-width: 320px;
+            text-align: center;
+        }
+
+        .wheel-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        .wheel {
+            width: 100%;
+            height: 200px;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid var(--accent);
+        }
+
+        .wheel-items {
+            display: flex;
+            height: 100%;
+            transition: transform 3s cubic-bezier(0.2, 0.8, 0.3, 1);
+        }
+
+        .wheel-item {
+            flex: 0 0 25%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--secondary-bg);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .wheel-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .wheel-amount {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: var(--accent);
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        /* Promo Codes Section */
+        .promo-section {
+            padding: 20px;
+        }
+
+        .promo-input {
+            width: 100%;
+            background: var(--card-bg);
+            border: 2px solid var(--accent);
+            border-radius: var(--border-radius-sm);
+            padding: 16px;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+
+        .promo-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .promo-button {
+            width: 100%;
+            background: var(--accent);
+            border: none;
+            border-radius: var(--border-radius-sm);
+            padding: 16px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .active-promos {
+            margin-top: 20px;
+        }
+
+        .promo-item {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-sm);
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .promo-code {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .promo-reward {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        /* Leaders Section */
+        .leaders-section {
+            padding: 20px;
+        }
+
+        .leaders-header {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .leaders-description {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .timer {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .timer-item {
+            text-align: center;
+        }
+
+        .timer-value {
+            font-size: 20px;
+            font-weight: bold;
+            background: var(--accent);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+        }
+
+        .timer-label {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .prizes-section {
+            margin-bottom: 20px;
+        }
+
+        .prizes-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .prizes-grid {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .prize-item {
+            background: var(--card-bg);
+            border-radius: var(--border-radius-sm);
+            padding: 12px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .prize-multiplier {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .prize-amount {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .leaderboard {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 16px;
+        }
+
+        .leader-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .leader-item:last-child {
+            border-bottom: none;
+        }
+
+        .leader-position {
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .leader-name {
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        .leader-stats {
+            font-weight: bold;
+        }
+
+        /* Responsive */
+        @media (max-width: 400px) {
+            .app-container {
+                max-width: 100%;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="time" id="currentTime">13:40</div>
+            <div class="connection">
+                <i class="fas fa-signal"></i>
+                <span>LTE</span>
+                <span>96</span>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Balance Section -->
+            <div class="balance-section">
+                <div class="balance-title">Ваш баланс</div>
+                <div class="balance-amount" id="balanceAmount">5</div>
+                <div class="balance-subtitle">звезд</div>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">55</div>
+                    <div class="stat-label">Всего открыто</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">Выигрыши</div>
+                </div>
+            </div>
+
+            <!-- Live Section -->
+            <div class="live-section">
+                <div class="live-header">
+                    <div class="live-pulse"></div>
+                    <div class="live-badge">LIVE</div>
+                </div>
+                <div class="live-items">
+                    <div class="live-item">🎁</div>
+                    <div class="live-item">💎</div>
+                    <div class="live-item">🔥</div>
+                    <div class="live-item">⭐</div>
+                    <div class="live-item">👑</div>
+                    <div class="live-item">⚡</div>
+                </div>
+            </div>
+
+            <!-- Settings & Prizes -->
+            <div class="options-section">
+                <div class="option-item">
+                    <div class="option-checkbox"></div>
+                    <div class="option-label">Настройки</div>
+                </div>
+                <div class="option-item">
+                    <div class="option-checkbox checked"></div>
+                    <div class="option-label">Призы</div>
+                </div>
+            </div>
+
+            <!-- Spin Button -->
+            <div class="spin-section">
+                <button class="spin-button" onclick="openWheel()">
+                    Крутить
+                </button>
+                <div class="spin-cost">за 299 звезд</div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <div class="nav-icon">🎁</div>
+                <div>Кейсы</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">🎯</div>
+                <div>Конкурсы</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">📋</div>
+                <div>Задания</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">👑</div>
+                <div>Лидеры</div>
+            </div>
+            <div class="nav-item">
+                <div class="nav-icon">👤</div>
+                <div>Профиль</div>
+            </div>
+        </div>
+
+        <!-- Case Opening Animation -->
+        <div class="case-opening" id="caseOpening">
+            <div class="case-reward">
+                <div class="reward-amount" id="rewardAmount">+10</div>
+                <div class="reward-text">Звезд выиграно!</div>
+            </div>
+        </div>
+
+        <!-- Wheel Animation -->
+        <div class="wheel-container" id="wheelContainer">
+            <div class="wheel-content">
+                <div class="wheel-title">Открытие кейса</div>
+                <div class="wheel">
+                    <div class="wheel-pointer">▶</div>
+                    <div class="wheel-items" id="wheelItems"></div>
+                </div>
+                <button class="spin-button" onclick="spinWheel()" style="width: 100%;">
+                    Крутить за 299
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User data
+        let userData = {
+            stars: 5,
+            userId: generateUserId(),
+            totalOpened: 55,
+            wins: 6,
+            usedPromoCodes: []
+        };
+
+        // Promo codes
+        const promoCodes = {
+            '12345': 5000,
+            'GORILLA1000': 1000,
+            'FREESPIN': 500
+        };
+
+        // Case rewards
+        const caseRewards = [
+            { amount: 10, probability: 0.85, icon: '⭐' },
+            { amount: 30, probability: 0.15, icon: '🌟' },
+            { amount: 50, probability: 0.10, icon: '💎' },
+            { amount: 100, probability: 0.05, icon: '🔥' },
+            { amount: 200, probability: 0.03, icon: '👑' },
+            { amount: 500, probability: 0.01, icon: '⚡' }
+        ];
+
+        // Generate unique user ID
+        function generateUserId() {
+            let userId = localStorage.getItem('gorillaUserId');
+            if (!userId) {
+                const randomNum = Math.floor(10000000 + Math.random() * 90000000);
+                userId = `Gorilla_${randomNum}`;
+                localStorage.setItem('gorillaUserId', userId);
+            }
+            return userId;
+        }
+
+        // Initialize app
+        function initApp() {
+            updateTime();
+            updateUI();
+            loadUserData();
+            
+            // Update time every minute
+            setInterval(updateTime, 60000);
+        }
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.getHours().toString().padStart(2, '0') + ':' + 
+                             now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('currentTime').textContent = timeString;
+        }
+
+        // Update UI with user data
+        function updateUI() {
+            document.getElementById('balanceAmount').textContent = userData.stars;
+        }
+
+        // Load user data from localStorage
+        function loadUserData() {
+            const savedData = localStorage.getItem('gorillaUserData');
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                userData.stars = data.stars || 5;
+                userData.totalOpened = data.totalOpened || 55;
+                userData.wins = data.wins || 6;
+                userData.usedPromoCodes = data.usedPromoCodes || [];
+                updateUI();
+            }
+        }
+
+        // Save user data to localStorage
+        function saveUserData() {
+            localStorage.setItem('gorillaUserData', JSON.stringify(userData));
+        }
+
+        // Open wheel animation
+        function openWheel() {
+            if (userData.stars < 299) {
+                alert('Недостаточно звезд!');
+                return;
+            }
+
+            const wheelContainer = document.getElementById('wheelContainer');
+            const wheelItems = document.getElementById('wheelItems');
+            
+            // Clear previous items
+            wheelItems.innerHTML = '';
+            
+            // Add wheel items (multiple copies for seamless animation)
+            for (let i = 0; i < 3; i++) {
+                caseRewards.forEach(reward => {
+                    const item = document.createElement('div');
+                    item.className = 'wheel-item';
+                    item.innerHTML = `
+                        <div class="wheel-icon">${reward.icon}</div>
+                        <div class="wheel-amount">${reward.amount}</div>
+                    `;
+                    wheelItems.appendChild(item);
+                });
+            }
+            
+            wheelContainer.classList.add('active');
+        }
+
+        // Spin wheel
+        function spinWheel() {
+            if (userData.stars < 299) {
+                alert('Недостаточно звезд!');
+                return;
+            }
+
+            // Deduct stars
+            userData.stars -= 299;
+            userData.totalOpened++;
+            updateUI();
+            saveUserData();
+
+            const wheelItems = document.getElementById('wheelItems');
+            const wheelContainer = document.getElementById('wheelContainer');
+            
+            // Calculate random reward based on probabilities
+            let random = Math.random();
+            let cumulative = 0;
+            let wonReward = caseRewards[0];
+            let winIndex = 0;
+
+            for (let i = 0; i < caseRewards.length; i++) {
+                cumulative += caseRewards[i].probability;
+                if (random <= cumulative) {
+                    wonReward = caseRewards[i];
+                    winIndex = i;
+                    break;
+                }
+            }
+
+            // Animate wheel
+            const itemWidth = 25; // 25% per item
+            const targetPosition = -(winIndex * itemWidth) - (itemWidth * caseRewards.length * 2) - (Math.random() * itemWidth);
+
+            wheelItems.style.transition = 'none';
+            wheelItems.style.transform = 'translateX(0)';
+            
+            setTimeout(() => {
+                wheelItems.style.transition = 'transform 3s cubic-bezier(0.2, 0.8, 0.3, 1)';
+                wheelItems.style.transform = `translateX(${targetPosition}%)`;
+                
+                // Show result after animation
+                setTimeout(() => {
+                    wheelContainer.classList.remove('active');
+                    
+                    // Add won stars
+                    userData.stars += wonReward.amount;
+                    userData.wins++;
+                    updateUI();
+                    saveUserData();
+                    
+                    // Show reward
+                    showReward(wonReward.amount);
+                }, 3500);
+            }, 50);
+        }
+
+        // Show reward animation
+        function showReward(amount) {
+            const caseOpening = document.getElementById('caseOpening');
+            const rewardAmount = document.getElementById('rewardAmount');
+            
+            rewardAmount.textContent = `+${amount}`;
+            caseOpening.classList.add('active');
+            
+            setTimeout(() => {
+                caseOpening.classList.remove('active');
+            }, 3000);
+        }
+
+        // Redeem promo code
+        function redeemPromoCode() {
+            const input = document.getElementById('promoInput');
+            const code = input.value.trim().toUpperCase();
+            
+            if (!code) {
+                alert('Введите промокод!');
+                return;
+            }
+            
+            if (userData.usedPromoCodes.includes(code)) {
+                alert('Этот промокод уже использован!');
+                return;
+            }
+            
+            if (promoCodes[code]) {
+                const reward = promoCodes[code];
+                userData.stars += reward;
+                userData.usedPromoCodes.push(code);
+                updateUI();
+                saveUserData();
+                
+                alert(`Промокод активирован! Получено ${reward} звезд!`);
+                input.value = '';
+            } else {
+                alert('Неверный промокод!');
+            }
+        }
+
+        // Initialize app when page loads
+        window.addEventListener('load', initApp);
+    </script>
+</body>
+</html>
